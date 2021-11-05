@@ -21,7 +21,7 @@ const MAINNET_ARROW_MINTS = [
  */
 const KNOWN_REWARDS_TOKENS: Record<string, string> = {
   // SUNNY IOU
-  SRYWvj5Xw1UoivpdfJN4hFZU1qbtceMvfM5nBc3PsRC: "sunny",
+  SRYWvj5Xw1UoivpdfJN4hFZU1qbtceMvfM5nBc3PsRC: "sunny-aggregator",
   // SBR IOU
   iouQcQBAiEXe6cKLS85zmZxUqaCqBdeHFpqKoSz615u: "saber",
 };
