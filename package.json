@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/cashio/treasury",
+  "repository": "https://github.com/cashioapp/treasury",
   "author": "Ghost Chain <ghost@cashio.app>",
   "license": "MIT",
   "packageManager": "yarn@3.1.0",
