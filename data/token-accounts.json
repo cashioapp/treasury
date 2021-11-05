@@ -1,1 +1,12 @@
-[{"mint":"USD9oeJpVZ8XXF9L884ZEsw7VXTSguNXboxsEi1fHrE","account":"D67ZNjaRERdc7Ej8SjbpyGwJT4MnadgzfGnwgCmMJAa1","sunnyPoolKey":"3Zk1PhVap6mwrB9jZktucoSaMBa2whYSq8jtLew3tXbp"},{"mint":"SRYWvj5Xw1UoivpdfJN4hFZU1qbtceMvfM5nBc3PsRC","account":"7xm1b8ZcharzxxqJUTeu4LtnVK1u65599f9wSRxzUwNf"},{"mint":"iouQcQBAiEXe6cKLS85zmZxUqaCqBdeHFpqKoSz615u","account":"8pkYj9PGyGaJR5FdmXprnJcsFLZ8Q9afgydPG85H1GcF"},{"mint":"USD9oeJpVZ8XXF9L884ZEsw7VXTSguNXboxsEi1fHrE","account":"CJdU6oLxuzuDffqtrzv3YvQjdjQ7egCkuRshwmKXNYjM","sunnyPoolKey":"3Zk1PhVap6mwrB9jZktucoSaMBa2whYSq8jtLew3tXbp"}]
+{
+  "coingeckoTokens": {
+    "sunny": ["7xm1b8ZcharzxxqJUTeu4LtnVK1u65599f9wSRxzUwNf"],
+    "saber": ["8pkYj9PGyGaJR5FdmXprnJcsFLZ8Q9afgydPG85H1GcF"]
+  },
+  "sunnyPools": {
+    "3Zk1PhVap6mwrB9jZktucoSaMBa2whYSq8jtLew3tXbp": [
+      "D67ZNjaRERdc7Ej8SjbpyGwJT4MnadgzfGnwgCmMJAa1",
+      "CJdU6oLxuzuDffqtrzv3YvQjdjQ7egCkuRshwmKXNYjM"
+    ]
+  }
+}

@@ -5,7 +5,7 @@ import { SignerWallet, SolanaProvider } from "@saberhq/solana-contrib";
 import { getATAAddress } from "@saberhq/token-utils";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import * as fs from "fs/promises";
-import { zip } from "lodash";
+import { groupBy, mapValues, zip } from "lodash";
 
 /**
  * The mints of the tokens in the treasury.
@@ -17,11 +17,38 @@ const MAINNET_ARROW_MINTS = [
 
 /**
  * Known tokens that will be in the Bank as rewards.
+ * Value is the coingecko ID.
  */
-const KNOWN_REWARDS_TOKENS = [
-  "SRYWvj5Xw1UoivpdfJN4hFZU1qbtceMvfM5nBc3PsRC",
-  "iouQcQBAiEXe6cKLS85zmZxUqaCqBdeHFpqKoSz615u",
-].map((v) => new PublicKey(v));
+const KNOWN_REWARDS_TOKENS: Record<string, string> = {
+  // SUNNY IOU
+  SRYWvj5Xw1UoivpdfJN4hFZU1qbtceMvfM5nBc3PsRC: "sunny",
+  // SBR IOU
+  iouQcQBAiEXe6cKLS85zmZxUqaCqBdeHFpqKoSz615u: "saber",
+};
+
+const fetchAccounts = async (
+  mints: PublicKey[],
+  owner: PublicKey,
+  arrows: {
+    key: PublicKey;
+    data: ArrowData;
+  }[]
+) => {
+  return await Promise.all(
+    mints.map(async (mint) => {
+      return {
+        mint,
+        account: await getATAAddress({
+          mint,
+          owner,
+        }),
+        coingeckoID: KNOWN_REWARDS_TOKENS[mint.toString()],
+        sunnyPoolKey: arrows.find((arrow) => arrow.data.mint.equals(mint))?.data
+          .pool,
+      };
+    })
+  );
+};
 
 export const generateTokenAccounts = async (): Promise<void> => {
   const provider = SolanaProvider.load({
@@ -53,32 +80,19 @@ export const generateTokenAccounts = async (): Promise<void> => {
     })
     .filter((x): x is { key: PublicKey; data: ArrowData } => !!x);
 
-  const bankAccounts = await Promise.all(
-    [...MAINNET_ARROW_MINTS, ...KNOWN_REWARDS_TOKENS].map(async (mint) => {
-      return {
-        mint,
-        account: await getATAAddress({
-          mint,
-          owner: BANK_KEY,
-        }),
-        sunnyPoolKey: arrows.find((arrow) => arrow.data.mint.equals(mint))?.data
-          .pool,
-      };
-    })
+  const bankAccounts = await fetchAccounts(
+    [
+      ...MAINNET_ARROW_MINTS,
+      ...Object.keys(KNOWN_REWARDS_TOKENS).map((k) => new PublicKey(k)),
+    ],
+    BANK_KEY,
+    arrows
   );
 
-  const crateAccounts = await Promise.all(
-    MAINNET_ARROW_MINTS.map(async (mint) => {
-      return {
-        mint,
-        account: await getATAAddress({
-          mint,
-          owner: CRATE_TOKEN,
-        }),
-        sunnyPoolKey: arrows.find((arrow) => arrow.data.mint.equals(mint))?.data
-          .pool,
-      };
-    })
+  const crateAccounts = await fetchAccounts(
+    MAINNET_ARROW_MINTS,
+    CRATE_TOKEN,
+    arrows
   );
 
   await fs.mkdir("data/", { recursive: true });
@@ -91,20 +105,40 @@ export const generateTokenAccounts = async (): Promise<void> => {
       return v;
     })
   );
+
+  // aggregate
+  const allAccounts = [...bankAccounts, ...crateAccounts];
+  const coingeckoTokens = mapValues(
+    groupBy(
+      allAccounts.filter((k) => k.coingeckoID),
+      (k) => k.coingeckoID
+    ),
+    (v) => v.map((a) => a.account)
+  );
+  const sunnyPools = mapValues(
+    groupBy(
+      allAccounts.filter((k) => !k.coingeckoID && k.sunnyPoolKey),
+      (k) => k.sunnyPoolKey
+    ),
+    (v) => v.map((a) => a.account)
+  );
+
   await fs.writeFile(
     "data/token-accounts.json",
-    JSON.stringify([...bankAccounts, ...crateAccounts], (_, v: unknown) => {
-      if (v instanceof PublicKey) {
-        return v.toString();
+    JSON.stringify(
+      {
+        coingeckoTokens,
+        sunnyPools,
+      },
+      (_, v: unknown) => {
+        if (v instanceof PublicKey) {
+          return v.toString();
+        }
+        return v;
       }
-      return v;
-    })
+    )
   );
-  console.log(
-    `Discovered and wrote ${
-      bankAccounts.length + crateAccounts.length
-    } accounts.`
-  );
+  console.log(`Discovered and wrote ${allAccounts.length} accounts.`);
 };
 
 generateTokenAccounts().catch((err) => {
